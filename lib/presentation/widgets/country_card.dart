@@ -63,9 +63,7 @@ class CountryCard extends StatelessWidget {
             children: [
               ElevatedButton(
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                    Colors.green,
-                  ),
+                  backgroundColor: WidgetStateProperty.all<Color>(Colors.green),
                 ),
                 onPressed: () {
                   Navigator.of(context).push(
@@ -82,7 +80,7 @@ class CountryCard extends StatelessWidget {
               const SizedBox(width: 10),
               ElevatedButton(
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                  backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
                 ),
                 onPressed: () {
                   Navigator.of(context).push(

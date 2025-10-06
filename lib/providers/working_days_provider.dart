@@ -38,6 +38,11 @@ class WorkingDaysProvider with ChangeNotifier {
 
     if (response.statusCode == 200) {
       _workingDays = workingDaysDetailsFromJson(response.body);
+      
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Success')));
     } else {
       if (!context.mounted) return;
       ScaffoldMessenger.of(

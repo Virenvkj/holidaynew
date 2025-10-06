@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:holidaynew/models/countries/country_details.dart';
 import 'package:holidaynew/presentation/holiday_screen.dart';
-import 'package:holidaynew/presentation/working_days_screen.dart';
+import 'package:holidaynew/presentation/working_days_screen_bloc.dart';
 
 class CountryCard extends StatelessWidget {
   const CountryCard({super.key, required this.index, required this.country});
@@ -85,7 +85,8 @@ class CountryCard extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => WorkingDaysScreen(country: country),
+                      builder: (context) =>
+                          WorkingDaysScreenBloc(country: country),
                     ),
                   );
                 },

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:holidaynew/bloc/working_days/working_days_cubit.dart';
+import 'package:holidaynew/bloc/working_days/working_days_state.dart';
 import 'package:holidaynew/models/countries/country_details.dart';
-import 'package:holidaynew/providers/working_days_provider.dart';
-import 'package:provider/provider.dart';
 
-class WorkingDaysScreen extends StatelessWidget {
-  const WorkingDaysScreen({super.key, required this.country});
+class WorkingDaysScreenBloc extends StatelessWidget {
+  const WorkingDaysScreenBloc({super.key, required this.country});
 
   final CountryDetails country;
 
@@ -14,9 +15,33 @@ class WorkingDaysScreen extends StatelessWidget {
       appBar: AppBar(title: Text('${country.name} Working days')),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Consumer<WorkingDaysProvider>(
-          builder: (context, value, child) {
-          
+        child: BlocConsumer<WorkingDaysCubit, WorkingDaysState>(
+          listener: (context, state) {
+            if (state.workingDays != null) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text("Success")));
+            }
+            if (state.isError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Oops something went wrong"),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state.isError) {
+              return const Center(
+                child: Text('Something went wrong, please try again !'),
+              );
+            }
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -27,14 +52,17 @@ class WorkingDaysScreen extends StatelessWidget {
                       context: context,
                       firstDate: DateTime(2024, 1, 1),
                       lastDate: DateTime(2024, 12, 31),
-                      initialDate: value.startDate,
+                      initialDate: state.startDate,
                     );
                     if (selectedDate != null) {
-                      value.startDate = selectedDate;
+                      if (!context.mounted) return;
+                      context.read<WorkingDaysCubit>().updateStartDate(
+                        selectedDate,
+                      );
                     }
                   },
                   child: Text(
-                    value.startDate.toString(),
+                    state.startDate.toString(),
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -49,15 +77,18 @@ class WorkingDaysScreen extends StatelessWidget {
                       context: context,
                       firstDate: DateTime(2024, 1, 1),
                       lastDate: DateTime(2024, 12, 31),
-                      initialDate: value.endDate,
+                      initialDate: state.endDate,
                     );
 
                     if (selectedDate != null) {
-                      value.endDate = selectedDate;
+                      if (!context.mounted) return;
+                      context.read<WorkingDaysCubit>().updateEndDate(
+                        selectedDate,
+                      );
                     }
                   },
                   child: Text(
-                    value.endDate.toString(),
+                    state.endDate.toString(),
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -69,11 +100,8 @@ class WorkingDaysScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () async {
                       await context
-                          .read<WorkingDaysProvider>()
-                          .calcuateWorkingDays(
-                            countryCode: country.code,
-                            context: context,
-                          );
+                          .read<WorkingDaysCubit>()
+                          .calcuateWorkingDays(countryCode: country.code);
                     },
                     child: const Text(
                       'Calculate Working days',
@@ -85,18 +113,14 @@ class WorkingDaysScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 100),
-                if (value.workingDays != null)
+                if (state.workingDays != null)
                   Center(
-                    child: Consumer<WorkingDaysProvider>(
-                      builder: (context, value, child) {
-                        return Text(
-                          value.workingDays!.workdays.toString(),
-                          style: const TextStyle(
-                            fontSize: 50,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
-                      },
+                    child: Text(
+                      state.workingDays!.workdays.toString(),
+                      style: const TextStyle(
+                        fontSize: 50,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
               ],

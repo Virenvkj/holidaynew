@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:holidaynew/core/api_requests.dart';
+
 import 'package:holidaynew/models/countries/country_details.dart';
-import 'package:holidaynew/models/holidays/holiday_master.dart';
 import 'package:holidaynew/presentation/widgets/holiday_card.dart';
-import 'package:http/http.dart' as http;
+import 'package:holidaynew/providers/holiday_provider.dart';
+import 'package:provider/provider.dart';
 
 class HolidayScreen extends StatefulWidget {
-  const HolidayScreen({
-    super.key,
-    required this.country,
-  });
+  const HolidayScreen({super.key, required this.country});
 
   final CountryDetails country;
 
@@ -18,63 +15,38 @@ class HolidayScreen extends StatefulWidget {
 }
 
 class _HolidayScreenState extends State<HolidayScreen> {
-  bool isLoading = false;
-  late HolidayMaster holidayData;
-
-  Future<void> getHolidays() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    final response = await http.get(
-      Uri.parse(
-        '${ApiRequests.holidayList}?country=${widget.country.code}&year=2024&pretty&key=75bd9324-2e21-4baf-8d33-2e3813b0d79f',
-      ),
-    );
-
-    if (response.statusCode == 200) {
-      holidayData = holidayMasterFromJson(response.body);
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Something went wrong'),
-        ),
-      );
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-    getHolidays();
+    context.read<HolidayProvider>().getHolidays(
+      countryCode: widget.country.code,
+      context: context,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${widget.country.name} Holidays'),
+      appBar: AppBar(title: Text('${widget.country.name} Holidays')),
+      body: Consumer<HolidayProvider>(
+        builder: (context, value, child) {
+          if (value.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (value.holidayData == null) {
+            return const Center(child: Text('No holidays found'));
+          }
+
+          return ListView.builder(
+            itemCount: value.holidayData!.holidays.length,
+            itemBuilder: (context, index) => HolidayCard(
+              index: index,
+              holidayDetails: value.holidayData!.holidays[index],
+            ),
+          );
+        },
       ),
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : (holidayData.holidays.isEmpty)
-              ? const Center(
-                  child: Text('No holidays found'),
-                )
-              : ListView.builder(
-                  itemCount: holidayData.holidays.length,
-                  itemBuilder: (context, index) => HolidayCard(
-                    index: index,
-                    holidayDetails: holidayData.holidays[index],
-                  ),
-                ),
     );
   }
 }

@@ -26,26 +26,32 @@ class _HolidayScreenState extends State<HolidayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('${widget.country.name} Holidays')),
-      body: Consumer<HolidayProvider>(
-        builder: (context, value, child) {
-          if (value.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        print("user trying to go back : ${result.toString()}");
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text('${widget.country.name} Holidays')),
+        body: Consumer<HolidayProvider>(
+          builder: (context, value, child) {
+            if (value.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (value.holidayData == null) {
-            return const Center(child: Text('No holidays found'));
-          }
+            if (value.holidayData == null) {
+              return const Center(child: Text('No holidays found'));
+            }
 
-          return ListView.builder(
-            itemCount: value.holidayData!.holidays.length,
-            itemBuilder: (context, index) => HolidayCard(
-              index: index,
-              holidayDetails: value.holidayData!.holidays[index],
-            ),
-          );
-        },
+            return ListView.builder(
+              itemCount: value.holidayData!.holidays.length,
+              itemBuilder: (context, index) => HolidayCard(
+                index: index,
+                holidayDetails: value.holidayData!.holidays[index],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
